@@ -43,7 +43,7 @@ jobs:
           for i in $(seq 0 4095); do
             d=mixed1g/p$((i % 64)); mkdir -p $d
             if [ $((i % 4)) = 0 ]; then head -c 262144 /dev/urandom > $d/f$i.bin
-            else head -c 196608 /dev/urandom | base64 -w 100 | head -c 262144 > $d/f$i.txt; fi
+            else head -c 196608 /dev/urandom | base64 -w 100 > $d/f$i.txt; fi
           done
           du -sh rand1g mixed1g
       - if: steps.rand.outputs.cache-hit != 'true'
