@@ -57,6 +57,25 @@ jobs:
           path: mixed1g
           key: mixed1g-v1
 
+  dep:
+    # The same 1 GB dependency-like set as gh-baseline.yml's dep, for an
+    # equal comparison with GitHub's own cache (zoded task 47, REQ-054).
+    runs-on: zode-4x8
+    steps:
+      - run: date +%s.%N > /tmp/t0
+      - id: dep
+        uses: actions/cache/restore@v6.1.0
+        with: { path: dep1g, key: zode-dep1g-v1 }
+      - run: echo "dep hit=${{ steps.dep.outputs.cache-hit }} seconds=$(awk -v a=$(date +%s.%N) -v b=$(cat /tmp/t0) 'BEGIN{printf "%.2f", a-b}')"; du -sh dep1g 2>/dev/null || true
+      - if: steps.dep.outputs.cache-hit != 'true'
+        run: |
+          i=0; while [ $i -lt 8192 ]; do d=dep1g/p$((i % 128)); mkdir -p $d
+            if [ $((i % 8)) = 0 ]; then head -c 131072 /dev/urandom > $d/f$i.bin
+            else seq $((i*1000)) $((i*1000+18000)) | sed "s/^/const v_/; s/$/ = require('module-$i');/" | head -c 131072 > $d/f$i.js || true; fi; i=$((i+1)); done
+      - if: steps.dep.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with: { path: dep1g, key: zode-dep1g-v1 }
+
   node:
     runs-on: zode
     steps:
